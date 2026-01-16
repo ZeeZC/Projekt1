@@ -2,9 +2,9 @@ id,name,desc,price,quantity,category_id
 0,Playstation 5,A stunning gaming console with high performance,6490.0,15,1
 1,Xbox 360,Legacy gaming console with medium performance,1790.0,5,1
 2,Corsair K95 Platinum XT,Fast RGB gaming keyboard with cherry switches,2950.0,12,2
-3,Razer Basilisk V3 Pro,Wireless RGB gaming mouse charger included,1290.0,8,3
-4,Antlion Wireless Microphone,Trådlös och flexible Mikrofon med hög kvalité,1490.0,13,4
+3,Razer Basilisk V3 Pro,Hej där,1290.0,7,3
+4,Antlion Wireless Microphone,Trådlös och flexible Mikrofon med hög kvalité,1480.0,13,4
 5,Asus ROG Strix B550-E,RGB gaming moderkort med snabb hastighet och responstider,1920.0,11,5
 6,ASUS GeForce RTX 3080 10GB TUF Gaming,Nvidia robust grafikkort med hög prestanda för gaming,6000.0,3,5
 7,Logitech ERGO K860 Wireless,Snabb trådlöst tangentbord av Logitech perfekt för gaming,1190.0,12,5
-8,testprodukt,tester,1000.0,2,3
+9,Playstation 4,Legacy spelkonsol ,2500.0,4,1

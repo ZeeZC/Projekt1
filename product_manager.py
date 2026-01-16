@@ -42,7 +42,7 @@ class Category:
         self.desc = desc
         self.products = [] #Lista för produkter i denna kategori
 
-    #Funktion för att lägga till produkt i kategorin
+    #Funktion för att lägga till produkt in kategorin
     def add_product(self, product):
         self.products.append(product)
 
@@ -222,19 +222,57 @@ class ProductManager:
 
     #Funktion för att visa alla produkter i en kompakt lista efter ID nummer (utan efter kategorier)
     def show_all_products_compact(self):
-        print("\033[1;34m" + "="*80)
-        print(" " * 30 + "ALLA PRODUKTER")
-        print("="*80 + "\033[0m")
+        print("\033[1;34m" + "="*100)
+        print(" " * 40 + "ALLA PRODUKTER")
+        print("="*100 + "\033[0m")
         
         if not self.products:
             print("Inga produkter finns.")
             return
 
-        #Visar varje produkt med numrering
+        #Definiera kolumnbredder
+        kolumn_bredder = {
+            'nummer': 4,      ## (ID)
+            'namn': 25,       #NAMN
+            'beskrivning': 30, #BESKRIVNING
+            'pris': 15,       #PRIS
+            'kvantitet': 12   #KVANTITET
+        }
+        
+        #Skapar rubrikrad
+        rubrik = f"{'#':<{kolumn_bredder['nummer']}} " \
+                 f"{'NAMN':<{kolumn_bredder['namn']}} " \
+                 f"{'BESKRIVNING':<{kolumn_bredder['beskrivning']}} " \
+                 f"{'PRIS':>{kolumn_bredder['pris']}} " \
+                 f"{'KVANTITET':>{kolumn_bredder['kvantitet']}}"
+        
+        #Skriver rubriken i gul färg
+        print("\033[1;33m" + rubrik + "\033[0m")
+        print("\033[1;33m" + "-" * 100 + "\033[0m")
+        
+        #Skapar produktrader
         for i, product in enumerate(self.products, 1):
-            category = self.get_category_by_id(product['category_id'])
-            category_name = category.name if category else "Okänd"
-            print(f"{i:2d}. ID: {product['id']} | {product['name']} - {format_currency(product['price'])} | {category_name}")
+            #Förkorta beskrivning om den är för lång
+            beskrivning = product['desc']
+            if len(beskrivning) > kolumn_bredder['beskrivning']:
+                beskrivning = beskrivning[:kolumn_bredder['beskrivning']-3] + "..."
+            
+            #Förkorta namn om det är för långt
+            namn = product['name']
+            if len(namn) > kolumn_bredder['namn']:
+                namn = namn[:kolumn_bredder['namn']-3] + "..."
+            
+            #Formatera pris med svensk valuta
+            pris_formaterad = format_currency(product['price'])
+            
+            #Skapa produktrad
+            produktrad = f"{i:<{kolumn_bredder['nummer']}} " \
+                        f"{namn:<{kolumn_bredder['namn']}} " \
+                        f"{beskrivning:<{kolumn_bredder['beskrivning']}} " \
+                        f"{pris_formaterad:>{kolumn_bredder['pris']}} " \
+                        f"{product['quantity']:>{kolumn_bredder['kvantitet']}}"
+            
+            print(produktrad)
 
     #Funktion för att visa alla kategorier och deras information
     def show_all_categories(self):
@@ -293,29 +331,32 @@ class ProductManager:
             product = self.products[current_index]
             self.show_product_detail(product)
             
-            print("\nNavigering: [←] Föregående [→] Nästa [E] Redigera [D] Ta bort [ESC] Avbryt")
+            print("\nNavigering: [A] Föregående [D] Nästa [E] Redigera [R] Ta bort [ESC] Avbryt")
             print(f"Produkt {current_index + 1} av {len(self.products)}")
             
             #Läser tangenttryckning
-            key = ord(msvcrt.getch())
-            if key == 27:  #ESC - avbryt
-                break
-            elif key == 224:  #Special tangenter (arrows)
+            try:
                 key = ord(msvcrt.getch())
-                if key == 75:  #Vänster pil - Föregående produkt
+                if key == 27:  #ESC - avbryt
+                    break
+                elif key == 97 or key == 65:  #A - Föregående produkt
                     current_index = (current_index - 1) % len(self.products)
-                elif key == 77:  #Höger pil - Nästa produkt
+                elif key == 100 or key == 68:  #D - Nästa produkt
                     current_index = (current_index + 1) % len(self.products)
-            elif key == 101 or key == 69:  #E - redigera produkt
-                self.edit_product_direct(product['id'])
-            elif key == 100 or key == 68:  #D - Radera produkt
-                if self.remove_product_direct(product['id']):
-                    #Om produkt tas bort så justeras index om nödvändigt
-                    if not self.products:
-                        print("Inga produkter kvar.")
-                        input("\nTryck enter för att fortsätta...")
-                        break
-                    current_index = min(current_index, len(self.products) - 1)
+                elif key == 101 or key == 69:  #E - redigera produkt
+                    self.edit_product_direct(product['id'])
+                elif key == 114 or key == 82:  #R - Radera produkt
+                    if self.remove_product_direct(product['id']):
+                        #Om produkt tas bort så justeras index om nödvändigt
+                        if not self.products:
+                            print("Inga produkter kvar.")
+                            input("\nTryck enter för att fortsätta...")
+                            break
+                        current_index = min(current_index, len(self.products) - 1)
+            except Exception as e:
+                print(f"Fel vid tangenttryckning: {e}")
+                input("\nTryck enter för att fortsätta...")
+                continue
 
     #Funktion för att kunna redigera en produkt direkt från blädringsläget
     def edit_product_direct(self, product_id):
@@ -324,7 +365,7 @@ class ProductManager:
             print("Produkten finns inte.")
             return
 
-        print("Skriv 'x' för att avbryta ändring, lämna tomt för att behålla nuvarande värde:")
+        print("Skriv 'x' för att avbryt ändring, lämna tomt för att behålla nuvarande värde:")
         
         #Ber användaren om nya värden för produkten ('x' avbryter)
         new_name = input(f"Nytt namn [{product['name']}]: ")
@@ -443,7 +484,7 @@ class ProductManager:
         }
         self.products.append(product) #Lägger till produkten
         
-        #Lägger till produkten i kategorin
+        #Lägger till produkten in kategorin
         category = self.get_category_by_id(category_id)
         if category:
             category.add_product(product)
@@ -464,7 +505,7 @@ class ProductManager:
             return True
         return False
 
-    #Funktion för att uppdaterar en produkts värden
+    #Funktion för att uppdatera en produkts värden
     def update_product(self, product_id, name=None, desc=None, price=None, quantity=None, category_id=None):
         product = self.get_product_by_id(product_id)
         if product:
@@ -489,7 +530,7 @@ class ProductManager:
                 if old_category:
                     old_category.remove_product(product_id)
                 
-                #Lägger till produkt i nya kategorin
+                #Lägger till produkt in nya kategorin
                 new_category = self.get_category_by_id(category_id)
                 if new_category:
                     new_category.add_product(product)
@@ -520,7 +561,7 @@ while not logged_in and attempts < 3:
     username = input("Användarnamn: ")
     password = input("Lösenord: ")
     
-    #Om du skriver rätt användarnamn och lösenord som finns i databasen så loggas du in
+    #Om du skriver rätt användarnamn och lösenord som finns in databasen så loggas du in
     if user_manager.authenticate(username, password):
         logged_in = True
         print("Inloggning lyckades!")
@@ -566,7 +607,7 @@ while True:
         manager.show_products_by_category()
         input("\nTryck enter för att fortsätta...")
 
-    #2. Visar alla produkter i en kompakt lista
+    #2. Visar alla produkter in en kompakt lista
     elif choice == "2":
         manager.show_all_products_compact()
         input("\nTryck enter för att fortsätta...")
@@ -675,7 +716,7 @@ while True:
                 input("\nTryck enter för att fortsätta...")
                 continue
 
-            print("Skriv 'x' för att avbryta ändring, lämna tomt för att behålla nuvarande värde:")
+            print("Skriv 'x' för att avbryt ändring, lämna tomt för att behålla nuvarande värde:")
             new_name = input(f"Nytt namn [{product['name']}]: ")
             if new_name.lower() == 'x':
                 print("Ändring avbruten.")
@@ -763,7 +804,7 @@ while True:
                 input("\nTryck enter för att fortsätta...")
                 continue
 
-            print("Skriv 'x' för att avbryta ändring, lämna tomt för att behålla nuvarande värde:")
+            print("Skriv 'x' för att avbryt ändring, lämna tomt för att behålla nuvarande värde:")
             new_name = input(f"Nytt namn [{category.name}]: ")
             if new_name.lower() == 'x':
                 print("Ändring avbruten.")
